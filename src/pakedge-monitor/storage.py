@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 
 
 class Storage:
-    def __init__(self, db_path):
+    def __init__(self, db_path: str) -> None:
         self.db_path = db_path
         self.connect = sqlite3.connect(self.db_path)
         self._init_tables()
 
-    def _init_tables(self):
+    def _init_tables(self) -> None:
         c = self.connect.cursor()
 
         c.execute("""
@@ -65,7 +65,7 @@ class Storage:
 
         self.connect.commit()
 
-    def upsert_devices(self, mac, ip, hostname, first_seen, last_seen, active=True):
+    def upsert_devices(self, mac: str, ip: str, hostname: str, first_seen: str, last_seen: str, active=True) -> None:
         if self.connect is None:
             self.connect = sqlite3.connect(self.db_path)
 
@@ -82,7 +82,7 @@ class Storage:
         """, (mac, ip, hostname, first_seen, last_seen, int(active)))
         self.connect.commit()
 
-    def insert_leases(self, leases):
+    def insert_leases(self, leases: list) -> None:
         if not leases:
             return
 
@@ -113,7 +113,7 @@ class Storage:
 
         self.connect.commit()
 
-    def insert_connections(self, connections):
+    def insert_connections(self, connections: list) -> None:
         if not connections:
             return
 
@@ -170,7 +170,7 @@ class Storage:
 
         self.connect.commit()
 
-    def insert_alerts(self, alerts):
+    def insert_alerts(self, alerts: list) -> None:
         if not alerts:
             return
 
@@ -195,12 +195,12 @@ class Storage:
 
         self.connect.commit()
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         if self.connect:
             self.connect.close()
             self.connect = None
 
-    def cleanup_connections(self, days=9):
+    def cleanup_connections(self, days=9) -> None:
         cutoff = (datetime.now() - timedelta(days=days)).isoformat()
 
         if self.connect is None:
@@ -213,7 +213,7 @@ class Storage:
 
         self.connect.commit()
 
-    def query_select(self, sql, params=()):
+    def query_select(self, sql: str, params=()) -> list:
         if not sql.strip().lower().startswith("select"):
             raise ValueError("Only SELECT statements are allowed")
         conn = sqlite3.connect(self.db_path)
@@ -224,7 +224,7 @@ class Storage:
         finally:
             conn.close()
 
-    def get_schema(self):
+    def get_schema(self) -> list:
         conn = sqlite3.connect(self.db_path)
         try:
             c = conn.cursor()
@@ -242,7 +242,7 @@ class Storage:
         finally:
             conn.close()
 
-    def get_devices(self):
+    def get_devices(self) -> list:
         conn = sqlite3.connect(self.db_path)
         try:
             c = conn.cursor()
@@ -258,7 +258,7 @@ class Storage:
         finally:
             conn.close()
 
-    def get_alerts(self):
+    def get_alerts(self) -> list:
         conn = sqlite3.connect(self.db_path)
         try:
             c = conn.cursor()
@@ -273,7 +273,7 @@ class Storage:
         finally:
             conn.close()
 
-    def get_active_connections_from_ip(self, ip):
+    def get_active_connections_from_ip(self, ip: str) -> list:
         conn = sqlite3.connect(self.db_path)
         try:
             c = conn.cursor()

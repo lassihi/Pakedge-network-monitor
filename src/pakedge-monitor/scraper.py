@@ -13,7 +13,7 @@ class RouterScraper:
         self.path_cookie = None
         self.auth_cookie = None
 
-    def login(self):
+    def login(self) -> None:
         s = self.session
         url = self.base_url + "/cgi-bin/router?transaction.redirect=1"
 
@@ -34,7 +34,7 @@ class RouterScraper:
 
         self.headers = s.post(url, data=payload, headers=headers).headers
 
-    def parse_cookies(self):
+    def parse_cookies(self) -> None:
         login_cookie = self.headers.get("Set-Cookie", "")
         match = re.search(r'path=([^;]+;stok=[^;]+)', login_cookie)
 
@@ -65,6 +65,7 @@ class RouterScraper:
 
         response = s.get(url, headers=headers).json()
         leases = response["leases"]
+
         return leases
 
     def scrape_connections(self) -> list:
@@ -87,9 +88,10 @@ class RouterScraper:
 
         response = s.get(url, headers=headers).json()
         connections = response["connections"]
+
         return connections
 
-    def scrape_static_devices(self):
+    def scrape_static_devices(self) -> list:
 
         s = self.session
         url = self.base_url + self.path_cookie + "/admin/status/overview"
@@ -120,4 +122,5 @@ class RouterScraper:
                     "ip": ip
                 })
             i += 1
+
         return devices
