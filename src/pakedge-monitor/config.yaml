@@ -1,7 +1,6 @@
 #REMEMBER TO SET ENV VARIABLES PAKEDGE_USER and PAKEDGE_PASS to router ui username and password
 
-# Information used for scraping the data from router UI.
-router_url: "http://192.168.1.99"
+router_url: "http://192.168.1.99" # Program must be restarted if changed.
 
 # How often information is scraped in case of possible alerts. Low interval (<5 seconds) will cause high cpu usage.
 alert_detection_interval_seconds: 10

@@ -65,7 +65,8 @@ def console(storage: Storage) -> None:
                         hostname = socket.gethostbyaddr(dest)[0]
                     except Exception:
                         hostname = "Unknown"
-                    print(f"  {dest}:{port} | {hostname} | {start_time} | {protocol}")
+                    print(
+                        f"  {dest}:{port} | {hostname} | {start_time} | {protocol}")
                 print()
                 continue
 
@@ -97,24 +98,25 @@ def console(storage: Storage) -> None:
 
 
 def main() -> None:
-    with open("config.yaml") as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
+    CONFIG_FILE = "config.yaml"
+    DATABASE_FILE = "network.db"
 
+    last_mtime = os.path.getmtime(CONFIG_FILE)
+    with open(CONFIG_FILE) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
     router_url = config["router_url"]
     router_ui_username = os.environ.get("PAKEDGE_USER")
     router_ui_password = os.environ.get("PAKEDGE_PASS")
     alert_interval = config["alert_detection_interval_seconds"]
     db_update_interval = config["database_update_interval_seconds"]
     targets = [tuple(t) for t in config["targets"]]
-    database_file = "network.db"
-
-    scan_alerts = config["alert_on_connect_scans"]
-    new_mac_alerts = config["alert_on_new_devices"]
+    scan_alerts_on = config["alert_on_connect_scans"]
+    new_mac_alerts_on = config["alert_on_new_devices"]
 
     pakedge = RouterScraper(router_url, router_ui_username, router_ui_password)
     tracker = Tracker()
     detector = Detector()
-    storage = Storage(database_file)
+    storage = Storage(DATABASE_FILE)
 
     next_cleanup = datetime.now() + timedelta(days=1)
     last_update = 0
@@ -126,7 +128,18 @@ def main() -> None:
         threading.Thread(target=console, args=(storage,), daemon=True).start()
 
         while True:
-            now = time.time()
+            # Update config variables if config.yaml is modified
+            mtime = os.path.getmtime(CONFIG_FILE)
+            if mtime != last_mtime:
+                with open(CONFIG_FILE) as f:
+                    config = yaml.load(f, Loader=yaml.FullLoader)
+                alert_interval = config["alert_detection_interval_seconds"]
+                db_update_interval = config["database_update_interval_seconds"]
+                targets = [tuple(t) for t in config["targets"]]
+                scan_alerts_on = config["alert_on_connect_scans"]
+                new_mac_alerts_on = config["alert_on_new_devices"]
+                last_mtime = mtime
+
             try:
                 scraped_leases = pakedge.scrape_leases()
                 static_devices = pakedge.scrape_static_devices()
@@ -150,14 +163,16 @@ def main() -> None:
             statics = normalize_static(static_devices)
             leases = normalize_leases(scraped_leases)
 
-            if scan_alerts:
+            if scan_alerts_on:
                 scans = detector.connect_scans(
                     connections, targets, min_distinct_targets=2)
                 storage.insert_alerts(scans)
-            if new_mac_alerts:
+            if new_mac_alerts_on:
                 new_macs = detector.new_macs(leases, statics)
                 storage.insert_alerts(new_macs)
 
+            # Only update database if db_update_interval seconds have passed
+            now = time.time()
             if now - last_update >= db_update_interval:
 
                 leases_new_or_updated, leases_ended = tracker.update_leases(
@@ -179,7 +194,6 @@ def main() -> None:
                         last_seen=device.last_seen,
                         active=device.active,
                     )
-
                 last_update = time.time()
 
             if datetime.now() >= next_cleanup:
