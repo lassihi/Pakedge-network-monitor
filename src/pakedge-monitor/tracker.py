@@ -1,9 +1,8 @@
 from datetime import datetime
 
 
-
 class Session:
-    def __init__(self, source, source_port, destination, destination_port, start_time, bytes, packets, protocol, end_time=None, active=True) -> None:
+    def __init__(self, source: str, source_port: int, destination: str, destination_port: int, start_time: str, bytes: int, packets: int, protocol: str, end_time=None, active=True) -> None:
         self.source = source
         self.source_port = source_port
         self.destination = destination
@@ -17,7 +16,7 @@ class Session:
 
 
 class Device:
-    def __init__(self, mac):
+    def __init__(self, mac: str) -> None:
         self.mac = mac
         self.ip = None
         self.hostname = None
@@ -25,7 +24,7 @@ class Device:
         self.last_seen = None
         self.active = False
 
-    def set_active(self, dev):
+    def set_active(self, dev: list) -> None:
         timestamp = dev["ts"]
         timestamp_dt = datetime.fromisoformat(timestamp)
 
@@ -55,17 +54,17 @@ class Device:
 
         self.active = True
 
-    def set_inactive(self):
+    def set_inactive(self) -> None:
         self.active = False
 
 
 class Tracker:
-    def __init__(self):
+    def __init__(self) -> None:
         self.active_leases = {}
         self.active_sessions = {}
         self.devices = {}
 
-    def update_connections(self, current_connections):
+    def update_connections(self, current_connections: list) -> list:
         now = datetime.now().isoformat()
         current_keys = set()
         new_or_updated = []
@@ -105,7 +104,7 @@ class Tracker:
 
         return new_or_updated, ended
 
-    def update_leases(self, leases):
+    def update_leases(self, leases: list) -> list:
         now = datetime.now().isoformat()
 
         def lease_key(l):
@@ -143,7 +142,7 @@ class Tracker:
 
         return new_or_updated, ended
 
-    def update_devices(self, leases, statics):
+    def update_devices(self, leases: list, statics: list) -> None:
         for device in self.devices.values():
             device.set_inactive()
 
@@ -161,5 +160,5 @@ class Tracker:
 
             self.devices[mac].set_active(static)
 
-    def get_all_devices(self):
+    def get_all_devices(self) -> list:
         return list(self.devices.values())

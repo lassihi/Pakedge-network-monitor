@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 
-def normalize_leases(leases):
+def normalize_leases(leases: list) -> list:
     now = datetime.now()
     ts = now.isoformat()
     normalized = []
@@ -23,7 +23,7 @@ def normalize_leases(leases):
     return normalized
 
 
-def normalize_connections(connections):
+def normalize_connections(connections: list) -> list:
     ts = datetime.now().isoformat
     normalized = []
     for c in connections:
@@ -54,7 +54,7 @@ def normalize_connections(connections):
     return normalized
 
 
-def normalize_static(static_devices):
+def normalize_static(static_devices: list) -> list:
     ts = datetime.now().isoformat()
     normalized = []
 

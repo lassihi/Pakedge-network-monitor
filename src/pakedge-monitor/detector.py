@@ -2,12 +2,12 @@ from datetime import datetime
 
 
 class Detector:
-    def __init__(self):
+    def __init__(self) -> None:
         self.last_scan_alerts = {}
         self.old_macs = []
         self.first_run = True
 
-    def connect_scans(self, current_connections, targets, min_distinct_targets):
+    def connect_scans(self, current_connections: list, targets: list, min_distinct_targets: int) -> list:
         now = datetime.now()
         cooldown_seconds = 300
 
@@ -50,7 +50,7 @@ class Detector:
 
         return alerts
 
-    def new_macs(self, leases, static_devices):
+    def new_macs(self, leases: list, static_devices: list) -> list:
 
         alerts = []
         for l in leases:

@@ -11,7 +11,7 @@ from detector import Detector
 from storage import Storage
 
 
-def console(storage):
+def console(storage: Storage) -> None:
     print("Type 'help' for a list of commands")
     while True:
         try:
@@ -96,7 +96,7 @@ def console(storage):
             print("Console error:", e)
 
 
-def main():
+def main() -> None:
     with open("../../config.yaml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
