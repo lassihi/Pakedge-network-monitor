@@ -97,7 +97,7 @@ def console(storage: Storage) -> None:
 
 
 def main() -> None:
-    with open("../../config.yaml") as f:
+    with open("config.yaml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     router_url = config["router_url"]
