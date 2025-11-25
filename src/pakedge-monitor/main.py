@@ -4,6 +4,7 @@ import time
 import threading
 import socket
 from datetime import datetime, timedelta
+from pathlib import Path
 from normalizer import normalize_connections, normalize_leases, normalize_static
 from scraper import RouterScraper
 from tracker import Tracker
@@ -112,12 +113,16 @@ def console(storage: Storage) -> None:
 
 
 def main() -> None:
-    CONFIG_FILE = "config.yaml"
-    DATABASE_FILE = "network.db"
 
-    last_mtime = os.path.getmtime(CONFIG_FILE)
-    with open(CONFIG_FILE) as f:
+    BASE_DIR = Path(__file__).resolve().parent
+    CONFIG_PATH = BASE_DIR / "config.yaml"
+    DATABASE_PATH = BASE_DIR / "network.db"
+
+    last_mtime = os.path.getmtime(CONFIG_PATH)
+
+    with open(CONFIG_PATH) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
+
     router_url = config["router_url"]
     router_ui_username = os.environ.get("PAKEDGE_USER")
     router_ui_password = os.environ.get("PAKEDGE_PASS")
@@ -130,7 +135,7 @@ def main() -> None:
     pakedge = RouterScraper(router_url, router_ui_username, router_ui_password)
     tracker = Tracker()
     detector = Detector()
-    storage = Storage(DATABASE_FILE)
+    storage = Storage(DATABASE_PATH)
 
     next_cleanup = datetime.now() + timedelta(days=1)
     last_update = 0
@@ -143,9 +148,9 @@ def main() -> None:
 
         while True:
             # Update config variables if config.yaml is modified
-            mtime = os.path.getmtime(CONFIG_FILE)
+            mtime = os.path.getmtime(CONFIG_PATH)
             if mtime != last_mtime:
-                with open(CONFIG_FILE) as f:
+                with open(CONFIG_PATH) as f:
                     config = yaml.load(f, Loader=yaml.FullLoader)
                 alert_interval = config["alert_detection_interval_seconds"]
                 db_update_interval = config["database_update_interval_seconds"]
