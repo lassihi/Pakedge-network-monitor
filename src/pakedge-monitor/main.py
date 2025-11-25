@@ -28,12 +28,25 @@ def console(storage: Storage) -> None:
                     print()
                 continue
 
+            elif cmd == "leases":
+                leases = storage.get_leases()
+                if not leases:
+                    print("No active leases\n")
+                    continue
+                print(f"\nActive leases:\n")
+                for hostname, ip, mac, expires in leases:
+                    if hostname is None:
+                        hostname = "Unknown"
+                    print(f"  {hostname} | {ip} | {mac} | {expires}")
+                print()
+                continue
+
             elif cmd == "devices":
                 devices = storage.get_devices()
                 if not devices:
-                    print("No active devices\n")
+                    print("No devices\n")
                     continue
-                print(f"\nActive devices:\n")
+                print(f"\nAll devices:\n")
                 for hostname, ip, mac in devices:
                     if hostname is None:
                         hostname = "Unknown"
@@ -84,6 +97,7 @@ def console(storage: Storage) -> None:
                 print("\nCommands:")
                 print("  alerts")
                 print("  devices")
+                print("  leases")
                 print("  connections <source_ip>")
                 print("  schema")
                 print("  SELECT <columns> FROM <table> WHERE <condition>")

@@ -51,7 +51,6 @@ class Detector:
         return alerts
 
     def new_macs(self, leases: list, static_devices: list) -> list:
-
         alerts = []
         for l in leases:
             if l["mac"] not in self.old_macs:
@@ -78,3 +77,5 @@ class Detector:
         self.first_run = False
 
         return alerts
+    
+    

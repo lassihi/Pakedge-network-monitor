@@ -289,3 +289,19 @@ class Storage:
             return rows
         finally:
             conn.close()
+
+    def get_leases(self) -> list:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            c = conn.cursor()
+            rows = c.execute(
+                """
+                SELECT hostname, ip, mac, expires
+                FROM leases
+                WHERE active = 1
+                ORDER BY expires DESC
+                """
+            ).fetchall()
+            return rows
+        finally:
+            conn.close()
