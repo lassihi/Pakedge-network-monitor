@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import time
 import threading
@@ -144,7 +145,11 @@ def main() -> None:
         pakedge.login()
         pakedge.parse_cookies()
 
-        threading.Thread(target=console, args=(storage,), daemon=True).start()
+        #Only run console if stdin is a TTY
+        if sys.stdin is not None and sys.stdin.isatty():
+            threading.Thread(target=console, args=(storage,), daemon=True).start()
+        else:
+            print("No interactive TTY detected; console disabled.")
 
         while True:
             # Update config variables if config.yaml is modified
