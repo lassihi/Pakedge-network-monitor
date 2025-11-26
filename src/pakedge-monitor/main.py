@@ -33,7 +33,7 @@ def console(storage: Storage) -> None:
             elif cmd == "leases":
                 leases = storage.get_leases()
                 if not leases:
-                    print("No active leases\n")
+                    print("\nNo active leases\n")
                     continue
                 print(f"\nActive leases:\n")
                 for hostname, ip, mac, expires in leases:
@@ -46,7 +46,7 @@ def console(storage: Storage) -> None:
             elif cmd == "devices":
                 devices = storage.get_devices()
                 if not devices:
-                    print("No devices\n")
+                    print("\nNo devices\n")
                     continue
                 print(f"\nAll devices:\n")
                 for hostname, ip, mac in devices:
@@ -59,7 +59,7 @@ def console(storage: Storage) -> None:
             elif cmd == "alerts":
                 alerts = storage.get_alerts()
                 if not alerts:
-                    print("No alerts")
+                    print("\nNo alerts\n")
                     continue
                 print(f"\nAlerts:\n")
                 for type, source, mac in alerts:
@@ -72,7 +72,7 @@ def console(storage: Storage) -> None:
                 source_ip = parts[1]
                 rows = storage.get_active_connections_from_ip(source_ip)
                 if not rows:
-                    print(f"No active connections from {source_ip}")
+                    print(f"\nNo active connections from {source_ip}\n")
                     continue
                 print(f"\nActive connections from {source_ip}:\n")
                 for dest, port, start_time, protocol in rows:
@@ -145,11 +145,11 @@ def main() -> None:
         pakedge.login()
         pakedge.parse_cookies()
 
-        #Only run console if stdin is a TTY
+        # Only run console if stdin is a TTY
         if sys.stdin is not None and sys.stdin.isatty():
             threading.Thread(target=console, args=(storage,), daemon=True).start()
         else:
-            print("No interactive TTY detected; console disabled.")
+            print("No TTY, console disabled.")
 
         while True:
             # Update config variables if config.yaml is modified
