@@ -158,7 +158,5 @@ class Tracker:
             if mac not in self.devices:
                 self.devices[mac] = Device(mac)
 
-            self.devices[mac].set_active(static)
-
     def get_all_devices(self) -> list:
         return list(self.devices.values())

@@ -77,5 +77,3 @@ class Detector:
         self.first_run = False
 
         return alerts
-    
-    
