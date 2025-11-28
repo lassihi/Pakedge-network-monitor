@@ -228,6 +228,9 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nQuit")
     finally:
+        storage.set_all_inactive("leases")
+        storage.set_all_inactive("connections")
+
         storage.close_connection()
 
 

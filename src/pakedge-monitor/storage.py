@@ -170,6 +170,16 @@ class Storage:
 
         self.connect.commit()
 
+    def set_all_inactive(self, table: str) -> None:
+        if self.connect is None:
+            self.connect = sqlite3.connect(self.db_path)
+
+        c = self.connect.cursor()
+
+        c.executemany(f"UPDATE {table} SET active = 0 WHERE active = 1")
+
+        self.connect.commit()
+
     def insert_alerts(self, alerts: list) -> None:
         if not alerts:
             return
