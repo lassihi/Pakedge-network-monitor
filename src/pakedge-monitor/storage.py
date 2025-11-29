@@ -176,7 +176,11 @@ class Storage:
 
         c = self.connect.cursor()
 
-        c.executemany(f"UPDATE {table} SET active = 0 WHERE active = 1")
+        allowed = {"devices", "leases", "connections"}
+        if table not in allowed:
+            raise ValueError(f"Invalid table name: {table}")
+
+        c.execute(f"UPDATE {table} SET active = 0 WHERE active = 1")
 
         self.connect.commit()
 
