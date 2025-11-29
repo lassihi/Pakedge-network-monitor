@@ -14,7 +14,7 @@ from storage import Storage
 
 
 def console(storage: Storage) -> None:
-    print("Type 'help' for a list of commands")
+    print("Type 'help' for a list of commands\n")
     while True:
         try:
             cmd = input("> ").strip().lower()
@@ -35,11 +35,18 @@ def console(storage: Storage) -> None:
                 if not leases:
                     print("\nNo active leases\n")
                     continue
-                print(f"\nActive leases:\n")
+                print("\nActive leases:\n")
+                host_w = max((len(h) if h else 7) for h, *_ in leases)
+                host_w = max(host_w, len("HOSTNAME"))
+                ip_w = max(len(r[1]) for r in leases)
+                ip_w = max(ip_w, len("IP"))
+                mac_w = max(len(r[2]) for r in leases)
+                mac_w = max(mac_w, len("MAC"))
+                print(f"  {"HOSTNAME":<{host_w}}  {"IP":<{ip_w}}  {"MAC":<{mac_w}}  EXPIRES")
                 for hostname, ip, mac, expires in leases:
                     if hostname is None:
                         hostname = "Unknown"
-                    print(f"  {hostname} | {ip} | {mac} | {expires}")
+                    print(f"  {hostname:<{host_w}}  {ip:<{ip_w}}  {mac:<{mac_w}}  {expires}")
                 print()
                 continue
 
@@ -48,11 +55,16 @@ def console(storage: Storage) -> None:
                 if not devices:
                     print("\nNo devices\n")
                     continue
-                print(f"\nAll devices:\n")
+                print("\nAll devices:\n")
+                host_w = max((len(h) if h else 7) for h, *_ in devices)
+                host_w = max(host_w, len("HOSTNAME"))
+                ip_w = max(len(r[1]) for r in devices)
+                ip_w = max(ip_w, len("IP"))
+                print(f"  {"HOSTNAME":<{host_w}}  {"IP":<{ip_w}}  MAC")
                 for hostname, ip, mac in devices:
                     if hostname is None:
                         hostname = "Unknown"
-                    print(f"  {hostname} | {ip} | {mac}")
+                    print(f"  {hostname:<{host_w}}  {ip:<{ip_w}}  {mac}")
                 print()
                 continue
 
@@ -61,9 +73,14 @@ def console(storage: Storage) -> None:
                 if not alerts:
                     print("\nNo alerts\n")
                     continue
-                print(f"\nAlerts:\n")
+                print("\nAlerts:\n")
+                type_w = max(len(r[0]) for r in alerts)
+                type_w = max(type_w, len("TYPE"))
+                src_w = max(len(r[1]) for r in alerts)
+                src_w = max(src_w, len("SOURCE"))
+                print(f"  {"TYPE":<{type_w}}  {"SOURCE":<{src_w}}  TIME")
                 for type, source, mac in alerts:
-                    print(f"  {type} | {source} | {mac}")
+                    print(f"  {type:<{type_w}}  {source:<{src_w}}  {mac}")
                 print()
                 continue
 
@@ -75,13 +92,19 @@ def console(storage: Storage) -> None:
                     print(f"\nNo active connections from {source_ip}\n")
                     continue
                 print(f"\nActive connections from {source_ip}:\n")
-                for dest, port, start_time, protocol in rows:
+                dests = [f"{r[0]}:{r[1]}" for r in rows]
+                dest_w = max(len(d) for d in dests)
+                hostnames = []
+                for r in rows:
                     try:
-                        hostname = socket.gethostbyaddr(dest)[0]
+                        hostnames.append(socket.gethostbyaddr(r[0])[0])
                     except Exception:
-                        hostname = "Unknown"
-                    print(
-                        f"  {dest}:{port} | {hostname} | {start_time} | {protocol}")
+                        hostnames.append("Unknown")
+                host_w = max(len(h) for h in hostnames)
+                print(f"  {"IP:PORT":<{dest_w}}  {"HOSTNAME":<{host_w}}  {"START_TIME":<25}  PROTOCOL")
+                for (dest, port, start_time, protocol), hostname in zip(rows, hostnames):
+                    dest_text = f"{dest}:{port}"
+                    print(f"  {dest_text:<{dest_w}}  {hostname:<{host_w}}  {start_time}  {protocol}")
                 print()
                 continue
 
@@ -107,10 +130,10 @@ def console(storage: Storage) -> None:
                 continue
 
             else:
-                print("Unknown command. Type 'help'.")
+                print("\nUnknown command. Type 'help'.\n")
 
         except Exception as e:
-            print("Console error:", e)
+            print("\nConsole error:", e, "\n")
 
 
 def main() -> None:
@@ -129,7 +152,7 @@ def main() -> None:
     router_ui_password = os.environ.get("PAKEDGE_PASS")
     alert_interval = config["alert_detection_interval_seconds"]
     db_update_interval = config["database_update_interval_seconds"]
-    targets = [tuple(t) for t in config["targets"]]
+    scan_targets = [tuple(t) for t in config["targets"]]
     scan_alerts_on = config["alert_on_connect_scans"]
     new_mac_alerts_on = config["alert_on_new_devices"]
 
@@ -159,7 +182,7 @@ def main() -> None:
                     config = yaml.load(f, Loader=yaml.FullLoader)
                 alert_interval = config["alert_detection_interval_seconds"]
                 db_update_interval = config["database_update_interval_seconds"]
-                targets = [tuple(t) for t in config["targets"]]
+                scan_targets = [tuple(t) for t in config["targets"]]
                 scan_alerts_on = config["alert_on_connect_scans"]
                 new_mac_alerts_on = config["alert_on_new_devices"]
                 last_mtime = mtime
@@ -189,7 +212,7 @@ def main() -> None:
 
             if scan_alerts_on:
                 scans = detector.connect_scans(
-                    connections, targets, min_distinct_targets=2)
+                    connections, scan_targets, min_distinct_targets=2)
                 storage.insert_alerts(scans)
             if new_mac_alerts_on:
                 new_macs = detector.new_macs(leases, statics)
