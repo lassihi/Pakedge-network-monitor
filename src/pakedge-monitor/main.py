@@ -42,7 +42,7 @@ def console(storage: Storage) -> None:
                 ip_w = max(ip_w, len("IP"))
                 mac_w = max(len(r[2]) for r in leases)
                 mac_w = max(mac_w, len("MAC"))
-                print(f"  {'':<{host_w}}  {'IP':<{ip_w}}  {'MAC':<{mac_w}}  EXPIRES")
+                print(f"  {'HOSTNAME':<{host_w}}  {'IP':<{ip_w}}  {'MAC':<{mac_w}}  EXPIRES")
                 for hostname, ip, mac, expires in leases:
                     if hostname is None:
                         hostname = "Unknown"
