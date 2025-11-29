@@ -42,7 +42,7 @@ def console(storage: Storage) -> None:
                 ip_w = max(ip_w, len("IP"))
                 mac_w = max(len(r[2]) for r in leases)
                 mac_w = max(mac_w, len("MAC"))
-                print(f"  {"HOSTNAME":<{host_w}}  {"IP":<{ip_w}}  {"MAC":<{mac_w}}  EXPIRES")
+                print(f"  {'':<{host_w}}  {'IP':<{ip_w}}  {'MAC':<{mac_w}}  EXPIRES")
                 for hostname, ip, mac, expires in leases:
                     if hostname is None:
                         hostname = "Unknown"
@@ -60,7 +60,7 @@ def console(storage: Storage) -> None:
                 host_w = max(host_w, len("HOSTNAME"))
                 ip_w = max(len(r[1]) for r in devices)
                 ip_w = max(ip_w, len("IP"))
-                print(f"  {"HOSTNAME":<{host_w}}  {"IP":<{ip_w}}  MAC")
+                print(f"  {'HOSTNAME':<{host_w}}  {'IP':<{ip_w}}  MAC")
                 for hostname, ip, mac in devices:
                     if hostname is None:
                         hostname = "Unknown"
@@ -78,7 +78,7 @@ def console(storage: Storage) -> None:
                 type_w = max(type_w, len("TYPE"))
                 src_w = max(len(r[1]) for r in alerts)
                 src_w = max(src_w, len("SOURCE"))
-                print(f"  {"TYPE":<{type_w}}  {"SOURCE":<{src_w}}  TIME")
+                print(f"  {'TYPE':<{type_w}}  {'SOURCE':<{src_w}}  TIME")
                 for type, source, mac in alerts:
                     print(f"  {type:<{type_w}}  {source:<{src_w}}  {mac}")
                 print()
@@ -101,7 +101,7 @@ def console(storage: Storage) -> None:
                     except Exception:
                         hostnames.append("Unknown")
                 host_w = max(len(h) for h in hostnames)
-                print(f"  {"IP:PORT":<{dest_w}}  {"HOSTNAME":<{host_w}}  {"START_TIME":<25}  PROTOCOL")
+                print(f"  {'IP:PORT':<{dest_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<25}  PROTOCOL")
                 for (dest, port, start_time, protocol), hostname in zip(rows, hostnames):
                     dest_text = f"{dest}:{port}"
                     print(f"  {dest_text:<{dest_w}}  {hostname:<{host_w}}  {start_time}  {protocol}")
@@ -115,7 +115,7 @@ def console(storage: Storage) -> None:
                     for r in rows:
                         print(r)
                 except Exception as e:
-                    print("Query error:", e)
+                    print("\nQuery error:", e, "\n")
                 continue
 
             elif cmd == "help":
