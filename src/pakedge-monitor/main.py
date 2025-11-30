@@ -149,15 +149,19 @@ def console(storage: Storage) -> None:
 
 def main() -> None:
 
-    BASE_DIR = Path(__file__).resolve().parent
-    CONFIG_PATH = BASE_DIR / "config.yaml"
-    
-    # Determine database path
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    CONFIG_PATH = PROJECT_ROOT / "src" / "pakedge-monitor" / "config.yaml"
     db_override = os.environ.get("PAKEDGE_DB")
+    local_data_path = PROJECT_ROOT / "data" / "network.db"
+    container_data_path = Path("/data/network.db")
+
     if db_override:
         DATABASE_PATH = Path(db_override)
+    elif container_data_path.parent.exists():
+        DATABASE_PATH = container_data_path
     else:
-        DATABASE_PATH = BASE_DIR / "network.db"
+        DATABASE_PATH = local_data_path
+
     try:
         DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     except Exception:
