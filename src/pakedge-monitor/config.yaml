@@ -2,19 +2,19 @@
 
 router_url: "http://192.168.1.99" # Program must be restarted if changed.
 
-# How often information is scraped in case of possible alerts. Low interval (<5 seconds) will cause high cpu usage.
+# How often information is scraped in case of possible alerts. Low interval (<5 seconds) will cause high router cpu usage.
 alert_detection_interval_seconds: 10
 
 # How often scraped data is stored to the database. Lower interval will use up more space.
 database_update_interval_seconds: 60
 
-alert_on_new_devices: False
+alert_on_new_devices: True
 
 alert_on_connect_scans: False
 # Targets that are used to detect connect scans. List of tuples (ip: str, port: int, concurrent_connections: int)
 # that scans have to hit to be detected. By default at least 2 of these check out to for the scan to be detected.
-# Leave empty to skip detection.
-# Example format:
+# Example format below.
+#
 # ---
 # targets:
 #   - !!python/tuple ["192.168.1.98", 80, 3]
@@ -22,8 +22,4 @@ alert_on_connect_scans: False
 #   - !!python/tuple ["192.168.1.99", 80, 1]
 #   - !!python/tuple ["192.168.1.109", 80, 3]
 # ---
-targets:
-  - !!python/tuple ["192.168.1.98", 80, 3]
-  - !!python/tuple ["192.168.1.98", 53, 1]
-  - !!python/tuple ["192.168.1.99", 80, 1]
-  - !!python/tuple ["192.168.1.109", 80, 3]
+
