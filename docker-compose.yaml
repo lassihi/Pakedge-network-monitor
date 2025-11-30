@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  pakedge:
+    image: pakedge-monitor:runtime
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - PAKEDGE_USER=${PAKEDGE_USER}
+      - PAKEDGE_PASS=${PAKEDGE_PASS}
+    volumes:
+      - ./:/app:ro
+      - ./data/network.db:/app/src/pakedge-monitor/network.db
+      - ./src/pakedge-monitor/config.yaml:/src/pakedge-monitor/config.yaml:ro
