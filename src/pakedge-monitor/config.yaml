@@ -8,8 +8,10 @@ alert_detection_interval_seconds: 10
 # How often scraped data is stored to the database. Lower interval will use up more space.
 database_update_interval_seconds: 60
 
+# Do you want alerts to generate when a new mac address is discovered on the network?
 alert_on_new_devices: True
 
+# Do you want alerts to generate when a scan is detected on the network?
 alert_on_connect_scans: False
 # Targets that are used to detect connect scans. List of tuples (ip: str, port: int, concurrent_connections: int)
 # that scans have to hit to be detected. By default at least 2 of these check out to for the scan to be detected.
