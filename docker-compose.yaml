@@ -10,6 +10,5 @@ services:
       - PAKEDGE_USER=${PAKEDGE_USER}
       - PAKEDGE_PASS=${PAKEDGE_PASS}
     volumes:
-      - ./:/app:ro
+      - ./:/app
       - ./data/network.db:/app/src/pakedge-monitor/network.db
-      - ./src/pakedge-monitor/config.yaml:/src/pakedge-monitor/config.yaml:ro
