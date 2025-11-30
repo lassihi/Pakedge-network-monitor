@@ -78,9 +78,20 @@ def console(storage: Storage) -> None:
                 type_w = max(type_w, len("TYPE"))
                 src_w = max(len(r[1]) for r in alerts)
                 src_w = max(src_w, len("SOURCE"))
-                print(f"  {'TYPE':<{type_w}}  {'SOURCE':<{src_w}}  TIME")
-                for type, source, mac in alerts:
-                    print(f"  {type:<{type_w}}  {source:<{src_w}}  {mac}")
+                mac_w = max(len(r[2][1]) for r in alerts)
+                mac_w = max(mac_w, len("MAC"))
+                print(f"  {'TYPE':<{type_w}}  {'SOURCE':<{src_w}}  {'TIME':<26}  {'MAC':<{mac_w}}  HOSTNAME")
+                for type, source, details, time in alerts:
+                    if type == "new_mac_address" and details[0] == "lease":
+                        mac = details[1]
+                        hostname = details[2]
+                    elif type == "new_mac_address" and details[0] == "static_device":
+                        mac = details[1]
+                        hostname = "N/A (static)"
+                    else:
+                        mac = "N/A (coming soon)"
+                        hostname = "N/A (coming soon)"
+                    print(f"  {type:<{type_w}}  {source:<{src_w}}  {time}  {mac:<{mac_w}}  {hostname}")
                 print()
                 continue
 

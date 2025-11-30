@@ -278,12 +278,23 @@ class Storage:
             c = conn.cursor()
             rows = c.execute(
                 """
-                SELECT type, source, time
+                SELECT type, source, details, time
                 FROM alerts
                 ORDER BY time DESC
                 """
             ).fetchall()
-            return rows
+
+            # Parse details JSON
+            parsed = []
+            for typ, source, details_json, when in rows:
+                try:
+                    details = json.loads(details_json) if details_json else []
+                except Exception:
+                    details = [details_json] if details_json is not None else []
+                if not isinstance(details, list):
+                    details = [details]
+                parsed.append((typ, source, details, when))
+            return parsed
         finally:
             conn.close()
 
@@ -313,7 +324,7 @@ class Storage:
                 SELECT hostname, ip, mac, expires
                 FROM leases
                 WHERE active = 1
-                ORDER BY expires DESC
+                ORDER BY ip ASC
                 """
             ).fetchall()
             return rows
