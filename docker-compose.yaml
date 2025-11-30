@@ -5,6 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    stdin_open: true
+    tty: true
     environment:
       - PAKEDGE_USER=${PAKEDGE_USER}
       - PAKEDGE_PASS=${PAKEDGE_PASS}
