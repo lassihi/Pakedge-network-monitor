@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   pakedge:
     image: pakedge-monitor:runtime
@@ -9,6 +8,7 @@ services:
     environment:
       - PAKEDGE_USER=${PAKEDGE_USER}
       - PAKEDGE_PASS=${PAKEDGE_PASS}
+      - PAKEDGE_DB=/data/network.db
     volumes:
       - ./:/app
-      - ./data/network.db:/app/src/pakedge-monitor/network.db
+      - ./data:/data

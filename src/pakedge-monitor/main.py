@@ -151,7 +151,17 @@ def main() -> None:
 
     BASE_DIR = Path(__file__).resolve().parent
     CONFIG_PATH = BASE_DIR / "config.yaml"
-    DATABASE_PATH = BASE_DIR / "network.db"
+    
+    # Determine database path
+    db_override = os.environ.get("PAKEDGE_DB")
+    if db_override:
+        DATABASE_PATH = Path(db_override)
+    else:
+        DATABASE_PATH = BASE_DIR / "network.db"
+    try:
+        DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
 
     last_mtime = os.path.getmtime(CONFIG_PATH)
 
@@ -170,7 +180,7 @@ def main() -> None:
     pakedge = RouterScraper(router_url, router_ui_username, router_ui_password)
     tracker = Tracker()
     detector = Detector()
-    storage = Storage(DATABASE_PATH)
+    storage = Storage(str(DATABASE_PATH))
 
     next_cleanup = datetime.now() + timedelta(days=1)
     last_update = 0
