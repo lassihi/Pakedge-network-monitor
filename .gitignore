@@ -1,4 +1,4 @@
-src/pakedge-monitor/network.db
+data/network.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
