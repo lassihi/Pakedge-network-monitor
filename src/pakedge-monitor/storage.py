@@ -262,7 +262,7 @@ class Storage:
             c = conn.cursor()
             rows = c.execute(
                 """
-                SELECT hostname, ip, mac
+                SELECT hostname, ip, mac, active, first_seen, last_seen
                 FROM devices
                 WHERE active = 1
                 ORDER BY ip ASC
@@ -307,6 +307,23 @@ class Storage:
                 SELECT destination, destination_port, start_time, protocol
                 FROM connections
                 WHERE active = 1 AND source = ?
+                ORDER BY start_time DESC
+                """,
+                (ip,)
+            ).fetchall()
+            return rows
+        finally:
+            conn.close()
+
+    def get_active_connections_to_ip(self, ip: str) -> list:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            c = conn.cursor()
+            rows = c.execute(
+                """
+                SELECT source, source_port, start_time, protocol
+                FROM connections
+                WHERE active = 1 AND destination = ?
                 ORDER BY start_time DESC
                 """,
                 (ip,)

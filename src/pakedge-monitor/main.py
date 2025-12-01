@@ -60,11 +60,18 @@ def console(storage: Storage) -> None:
                 host_w = max(host_w, len("HOSTNAME"))
                 ip_w = max(len(r[1]) for r in devices)
                 ip_w = max(ip_w, len("IP"))
-                print(f"  {'HOSTNAME':<{host_w}}  {'IP':<{ip_w}}  MAC")
-                for hostname, ip, mac in devices:
+                mac_w = max(len(r[2]) for r in devices)
+                mac_w = max(mac_w, len("MAC"))
+                print(f"  {'HOSTNAME':<{host_w}}  {'IP':<{ip_w}}  {'MAC':<{mac_w}}  {'ACTIVE'}")
+                for hostname, ip, mac, active_value, first_seen, last_seen in devices:
                     if hostname is None:
                         hostname = "Unknown"
-                    print(f"  {hostname:<{host_w}}  {ip:<{ip_w}}  {mac}")
+
+                    if active_value == "1":
+                        active = "True"
+                    else:
+                        active = "False"
+                    print(f"  {hostname:<{host_w}}  {ip:<{ip_w}}  {mac:<{mac_w}}  {active}")
                 print()
                 continue
 
@@ -97,26 +104,51 @@ def console(storage: Storage) -> None:
 
             elif cmd.startswith("connections "):
                 parts = cmd.split()
-                source_ip = parts[1]
-                rows = storage.get_active_connections_from_ip(source_ip)
-                if not rows:
-                    print(f"\nNo active connections from {source_ip}\n")
+                ip = parts[1]
+                rows_from = storage.get_active_connections_from_ip(ip)
+                rows_to = storage.get_active_connections_to_ip(ip)
+
+                if not rows_from and not rows_to:
+                    print(f"\nNo active connections FROM or TO {ip}\n")
                     continue
-                print(f"\nActive connections from {source_ip}:\n")
-                dests = [f"{r[0]}:{r[1]}" for r in rows]
-                dest_w = max(len(d) for d in dests)
-                hostnames = []
-                for r in rows:
-                    try:
-                        hostnames.append(socket.gethostbyaddr(r[0])[0])
-                    except Exception:
-                        hostnames.append("Unknown")
-                host_w = max(len(h) for h in hostnames)
-                print(f"  {'IP:PORT':<{dest_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<25}  PROTOCOL")
-                for (dest, port, start_time, protocol), hostname in zip(rows, hostnames):
-                    dest_text = f"{dest}:{port}"
-                    print(f"  {dest_text:<{dest_w}}  {hostname:<{host_w}}  {start_time}  {protocol}")
-                print()
+
+                if rows_from:
+                    print(f"\nActive connections FROM {ip}:\n")
+                    dests = [f"{r[0]}:{r[1]}" for r in rows_from]
+                    dest_w = max(len(d) for d in dests)
+                    hostnames = []
+                    for r in rows_from:
+                        try:
+                            hostnames.append(socket.gethostbyaddr(r[0])[0])
+                        except Exception:
+                            hostnames.append("Unknown")
+                    host_w = max(len(h) for h in hostnames)
+                    print(f"  {'DESTINATION':<{dest_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<26}  PROTOCOL")
+                    for (dest, port, start_time, protocol), hostname in zip(rows_from, hostnames):
+                        dest_text = f"{dest}:{port}"
+                        print(f"  {dest_text:<{dest_w}}  {hostname:<{host_w}}  {start_time}  {protocol.upper()}")
+                    print()
+                else:
+                    print(f"\nNo active connections FROM {ip}\n")
+
+                if rows_to:
+                    print(f"Active connections TO {ip}:\n")
+                    sources = [f"{r[0]}:{r[1]}" for r in rows_to]
+                    source_w = max(len(s) for s in sources)
+                    hostnames = []
+                    for r in rows_to:
+                        try:
+                            hostnames.append(socket.gethostbyaddr(r[0])[0])
+                        except Exception:
+                            hostnames.append("Unknown")
+                    host_w = max(len(h) for h in hostnames)
+                    print(f"  {'SOURCE':<{source_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<26}  PROTOCOL")
+                    for (source, port, start_time, protocol), hostname in zip(rows_to, hostnames):
+                        source_text = f"{source}:{port}"
+                        print(f"  {source_text:<{source_w}}  {hostname:<{host_w}}  {start_time}  {protocol.upper()}")
+                    print()
+                else:
+                    print(f"\nNo active connections TO {ip}\n")
                 continue
 
             elif cmd.startswith("select "):
