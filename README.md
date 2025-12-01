@@ -30,8 +30,8 @@ database_update_interval_seconds: 30
 alert_on_connect_scans: True
 alert_on_new_devices: True
 targets:
-	- !!python/tuple["192.168.1.10", 80]
-	- !!python/tuple["192.168.1.20", 443]
+  - !!python/tuple["192.168.1.10", 80]
+  - !!python/tuple["192.168.1.20", 443]
 ```
 
 Runtime environment variables:
