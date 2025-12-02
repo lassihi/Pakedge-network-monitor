@@ -30,16 +30,14 @@ database_update_interval_seconds: 30
 alert_on_connect_scans: True
 alert_on_new_devices: True
 targets:
-  - !!python/tuple["192.168.1.10", 80]
-  - !!python/tuple["192.168.1.20", 443]
+  - !!python/tuple["192.168.1.10", 80, 1]
+  - !!python/tuple["192.168.1.20", 443, 3]
 ```
 
 Runtime environment variables:
 - `PAKEDGE_USER`: Router UI username
 - `PAKEDGE_PASS`: Router UI password
-- `PAKEDGE_DB` (optional): Override SQLite database path. Defaults to:
-	1. `/data/network.db` if `/data` exists
-	2. `data/network.db` at the project root
+- `PAKEDGE_DB` (optional): Override SQLite database path.
 
 ## Usage
 
