@@ -88,7 +88,7 @@ class Tracker:
             else:
                 sess = self.active_sessions[key]
                 sess.bytes = c.get("bytes", sess.bytes)
-                sess.packets = c.get("packets", sess.bytes)
+                sess.packets = c.get("packets", sess.packets)
                 sess.active = True
                 sess.end_time = None
                 new_or_updated.append(sess)
@@ -96,7 +96,6 @@ class Tracker:
         ended = []
         for key, sess in list(self.active_sessions.items()):
             if key not in current_keys:
-                sess = self.active_sessions[key]
                 sess.active = False
                 sess.end_time = now
                 ended.append(sess)
@@ -139,7 +138,7 @@ class Tracker:
                     "end_time": now
                 }
                 ended.append(ended_lease)
-                del self.active_leases[key]
+                del self.active_leases[mac]
 
         return new_or_updated, ended
 
