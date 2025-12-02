@@ -24,7 +24,7 @@ def normalize_leases(leases: list) -> list:
 
 
 def normalize_connections(connections: list) -> list:
-    ts = datetime.now().isoformat
+    ts = datetime.now().isoformat()
     normalized = []
     for c in connections:
         src = c.get("src") or ""

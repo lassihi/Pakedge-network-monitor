@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Session:
@@ -108,10 +108,11 @@ class Tracker:
         now = datetime.now().isoformat()
 
         def lease_key(l):
-            return (l["mac"], l["ip"], l["expires"])
+            return (l["mac"], l["ip"])
 
         current_keys = {lease_key(l) for l in leases}
         new_or_updated = []
+        ended = []
 
         for l in leases:
             key = lease_key(l)
@@ -121,15 +122,15 @@ class Tracker:
                 lease = {**l, "end_time": None, "active": True}
                 self.active_leases[key] = lease
                 new_or_updated.append(lease)
-            else:
-                changed = False
-                if l.get("hostname") != prev.get("hostname"):
-                    prev["hostname"] = l.get("hostname")
-                    changed = True
-                if changed:
-                    new_or_updated.append(prev)
+            elif l.get("expires") != prev.get("expires"):
+                difference = abs(datetime.fromisoformat(
+                    l.get("expires")) - datetime.fromisoformat(prev.get("expires")))
+                if difference >= timedelta(seconds=60):
+                    ended.append({**prev, "active": False,"end_time": now})
+                    lease = {**l, "end_time": None, "active": True}
+                    self.active_leases[key] = lease
+                    new_or_updated.append(lease)
 
-        ended = []
         for mac, prev in list(self.active_leases.items()):
             if mac not in current_keys:
                 ended_lease = {
@@ -138,7 +139,7 @@ class Tracker:
                     "end_time": now
                 }
                 ended.append(ended_lease)
-                del self.active_leases[mac]
+                del self.active_leases[key]
 
         return new_or_updated, ended
 
