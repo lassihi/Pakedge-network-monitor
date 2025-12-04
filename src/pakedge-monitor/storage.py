@@ -108,6 +108,7 @@ class Storage:
         ON CONFLICT(mac, ip) DO UPDATE SET
             hostname = COALESCE(excluded.hostname, hostname),
             first_seen = excluded.first_seen,
+            expires = excluded.expires,
             end_time = excluded.end_time,
             active = excluded.active""", mapped_leases)
 
