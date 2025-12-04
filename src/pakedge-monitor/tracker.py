@@ -121,12 +121,21 @@ class Tracker:
                 lease = {**l, "end_time": None, "active": True}
                 self.active_leases[key] = lease
                 new_or_updated.append(lease)
+
             elif l.get("expires") != prev.get("expires"):
                 difference = abs(datetime.fromisoformat(
                     l.get("expires")) - datetime.fromisoformat(prev.get("expires")))
-                if difference >= timedelta(seconds=60):
+                
+                # Update expiration time if it has changed slightly, while filtering out noise
+                if difference >= timedelta(seconds=20) and difference < timedelta(minutes=60):
+                    lease = {**prev, "expires": l.get("expires")}
+                    self.active_leases[key] = lease
+                    new_or_updated.append(lease)
+                
+                 # Update lease if expiration time has changed significantly
+                elif difference >= timedelta(minutes=60):
                     ended.append({**prev, "active": False,"end_time": now})
-                    lease = {**l, "end_time": None, "active": True}
+                    lease = {**l, "active": True, "end_time": None}
                     self.active_leases[key] = lease
                     new_or_updated.append(lease)
 
