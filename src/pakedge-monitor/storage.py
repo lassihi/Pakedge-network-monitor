@@ -33,7 +33,7 @@ class Storage:
             first_seen TEXT,
             end_time TEXT,
             active TEXT,
-            UNIQUE(mac, ip, expires)
+            UNIQUE(mac, ip)
         );
         """)
 
@@ -105,7 +105,7 @@ class Storage:
         c.executemany("""
         INSERT INTO leases (mac, ip, hostname, first_seen, expires, end_time, active)
         VALUES (:mac, :ip, :hostname, :first_seen, :expires, :end_time, :active)
-        ON CONFLICT(mac, ip, expires) DO UPDATE SET
+        ON CONFLICT(mac, ip) DO UPDATE SET
             hostname = COALESCE(excluded.hostname, hostname),
             first_seen = excluded.first_seen,
             end_time = excluded.end_time,
