@@ -1,19 +1,19 @@
 # Pakedge Network Monitor
 
-Monitor and log network activity from a Pakedge router UI. The service scrapes leases, static devices and live connection data, normalizes it, persists to SQLite, and raises alerts for network scans and new MAC addresses. It includes an interactive console for quick inspection.
+Monitor and log network activity from a Pakedge router UI. The app scrapes leases, static devices and live connection data, saves it to a SQLite database, and raises alerts for network scans and new MAC addresses.
 
 ## Features
 - Scrapes Pakedge router UI for:
 	- Active DHCP leases
 	- Static devices
 	- Live connections
-- Normalizes and stores telemetry in SQLite (`network.db`).
+- Normalizes and stores information in SQLite (`network.db`).
 - Alerts:
 	- Connect scan detection (multiple distinct targets)
 	- New MAC addresses (vs. known static/lease set)
-- Interactive console with readable tabular output:
+- A seperate interactive console with readable output:
 	- `alerts`, `devices`, `leases`, `connections <ip>`, `schema`, `SELECT ...`
-- Docker and Compose support with bind mounts for easy code updates.
+- Docker and Compose support
 
 ## Requirements
 - Python 3.11+
@@ -24,9 +24,9 @@ Monitor and log network activity from a Pakedge router UI. The service scrapes l
 The app reads `config.yaml` from `src/pakedge-monitor/config.yaml` by default. Example keys:
 
 ```yaml
-router_url: "https://your-router/"
+router_url: "https://your-router"
 alert_detection_interval_seconds: 10
-database_update_interval_seconds: 30
+database_update_interval_seconds: 60
 alert_on_connect_scans: True
 alert_on_new_devices: True
 targets:
@@ -46,13 +46,13 @@ Runtime environment variables:
 Commands:
 
 ```bash
-# Interactive session (temporary container)
-PAKEDGE_USER="router-username" PAKEDGE_PASS="router-password" docker compose run --rm -it pakedge
-
-# Detached service (no interactive console)
+# Main app
 PAKEDGE_USER="router-username" PAKEDGE_PASS="router-password" docker compose up -d --build
 
-# Update code then restart
+# Console
+docker compose run --rm -it pakedge python src/pakedge-monitor/console_app.py
+
+# Updating code
 git pull
 PAKEDGE_USER="router-username" PAKEDGE_PASS="router-password" docker compose up -d --force-recreate
 ```
@@ -70,4 +70,7 @@ export PAKEDGE_USER="router-username"
 export PAKEDGE_PASS="router-password"
 
 python src/pakedge-monitor/main.py
+
+# Console
+python src/pakedge-monitor/console_app.py
 ```
