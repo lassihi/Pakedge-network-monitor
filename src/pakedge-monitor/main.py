@@ -81,24 +81,59 @@ def console(storage: Storage) -> None:
                     print("\nNo alerts\n")
                     continue
                 print("\nAlerts:\n")
-                type_w = max(len(r[0]) for r in alerts)
+                display_rows = []
+                for alert_type, source_ip, details, when in alerts:
+                    mac_display = "Unknown"
+                    hostname_display = None
+                    source_device = None
+
+                    if source_ip and when:
+                        source_device = storage.get_device_for_ip(source_ip, when)
+                        if source_device:
+                            if source_device.get("mac"):
+                                mac_display = source_device["mac"]
+                            hostname_display = source_device.get("hostname")
+
+                    if alert_type == "new_mac_address":
+                        origin = details[0] if details else None
+                        mac_display = details[1] if len(details) > 1 else "Unknown"
+
+                        if origin == "lease":
+                            lease_hostname = details[2] if len(details) > 2 else None
+                            if not hostname_display:
+                                hostname_display = lease_hostname or "Unknown"
+                        elif origin == "static_device":
+                            if not hostname_display:
+                                hostname_display = "Unknown (static)"
+                        else:
+                            if not hostname_display:
+                                hostname_display = "Unknown"
+                    else:
+                        if not source_device or not source_device.get("mac"):
+                            mac_display = "Unknown"
+                        if not hostname_display:
+                            hostname_display = "Unknown"
+
+                    display_rows.append(
+                        (
+                            alert_type,
+                            source_ip or "Unknown",
+                            when,
+                            mac_display,
+                            hostname_display,
+                        )
+                    )
+
+                type_w = max(len(row[0]) for row in display_rows)
                 type_w = max(type_w, len("TYPE"))
-                src_w = max(len(r[1]) for r in alerts)
+                src_w = max(len(row[1]) for row in display_rows)
                 src_w = max(src_w, len("SOURCE"))
-                mac_w = max(len(r[2][1]) for r in alerts)
+                mac_w = max(len(row[3]) for row in display_rows)
                 mac_w = max(mac_w, len("MAC"))
                 print(f"  {'TYPE':<{type_w}}  {'SOURCE':<{src_w}}  {'TIME':<26}  {'MAC':<{mac_w}}  HOSTNAME")
-                for type, source, details, time in alerts:
-                    if type == "new_mac_address" and details[0] == "lease":
-                        mac = details[1]
-                        hostname = details[2]
-                    elif type == "new_mac_address" and details[0] == "static_device":
-                        mac = details[1]
-                        hostname = "N/A (static)"
-                    else:
-                        mac = "N/A (coming soon)"
-                        hostname = "N/A (coming soon)"
-                    print(f"  {type:<{type_w}}  {source:<{src_w}}  {time}  {mac:<{mac_w}}  {hostname}")
+                for row in display_rows:
+                    alert_type, source_ip, when, mac_display, hostname_display = row
+                    print(f"  {alert_type:<{type_w}}  {source_ip:<{src_w}}  {when}  {mac_display:<{mac_w}}  {hostname_display}")
                 print()
                 continue
 
@@ -117,11 +152,18 @@ def console(storage: Storage) -> None:
                     dests = [f"{r[0]}:{r[1]}" for r in rows_from]
                     dest_w = max(len(d) for d in dests)
                     hostnames = []
-                    for r in rows_from:
-                        try:
-                            hostnames.append(socket.gethostbyaddr(r[0])[0])
-                        except Exception:
-                            hostnames.append("Unknown")
+                    for dest_ip, _, start_time, _ in rows_from:
+                        hostname = None
+                        if start_time:
+                            device_info = storage.get_device_for_ip(dest_ip, start_time)
+                            if device_info:
+                                hostname = device_info.get("hostname")
+                        if not hostname:
+                            try:
+                                hostname = socket.gethostbyaddr(dest_ip)[0]
+                            except Exception:
+                                hostname = "Unknown"
+                        hostnames.append(hostname)
                     host_w = max(len(h) for h in hostnames)
                     print(f"  {'DESTINATION':<{dest_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<26}  PROTOCOL")
                     for (dest, port, start_time, protocol), hostname in zip(rows_from, hostnames):
@@ -136,11 +178,18 @@ def console(storage: Storage) -> None:
                     sources = [f"{r[0]}:{r[1]}" for r in rows_to]
                     source_w = max(len(s) for s in sources)
                     hostnames = []
-                    for r in rows_to:
-                        try:
-                            hostnames.append(socket.gethostbyaddr(r[0])[0])
-                        except Exception:
-                            hostnames.append("Unknown")
+                    for source_ip, _, start_time, _ in rows_to:
+                        hostname = None
+                        if start_time:
+                            device_info = storage.get_device_for_ip(source_ip, start_time)
+                            if device_info:
+                                hostname = device_info.get("hostname")
+                        if not hostname:
+                            try:
+                                hostname = socket.gethostbyaddr(source_ip)[0]
+                            except Exception:
+                                hostname = "Unknown"
+                        hostnames.append(hostname)
                     host_w = max(len(h) for h in hostnames)
                     print(f"  {'SOURCE':<{source_w}}  {'HOSTNAME':<{host_w}}  {'START_TIME':<26}  PROTOCOL")
                     for (source, port, start_time, protocol), hostname in zip(rows_to, hostnames):

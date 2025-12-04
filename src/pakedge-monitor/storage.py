@@ -347,3 +347,32 @@ class Storage:
             return rows
         finally:
             conn.close()
+
+    def get_device_for_ip(self, ip: str, when: str) -> dict | None:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            c = conn.cursor()
+            row = c.execute(
+                """
+                SELECT mac, hostname
+                FROM devices
+                WHERE ip = ?
+                  AND (first_seen IS NULL OR first_seen <= ?)
+                  AND (last_seen IS NULL OR last_seen >= ?)
+                ORDER BY last_seen DESC
+                LIMIT 1
+                """,
+                (ip, when, when)
+            ).fetchone()
+            if row:
+                mac, hostname = row
+                return {"mac": mac or None, "hostname": hostname or None}
+            return None
+        finally:
+            conn.close()
+
+    def get_hostname_for_ip(self, ip: str, when: str) -> str | None:
+        device = self.get_device_for_ip(ip, when)
+        if device:
+            return device.get("hostname")
+        return None
