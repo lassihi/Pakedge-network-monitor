@@ -104,7 +104,8 @@ class Tracker:
         return new_or_updated, ended
 
     def update_leases(self, leases: list) -> list:
-        now = datetime.now().isoformat()
+        now_dt = datetime.now()
+        now = now_dt.isoformat()
 
         def lease_key(l):
             return (l["mac"], l["ip"])
@@ -122,32 +123,52 @@ class Tracker:
                 self.active_leases[key] = lease
                 new_or_updated.append(lease)
 
-            elif l.get("expires") != prev.get("expires"):
-                difference = abs(datetime.fromisoformat(
-                    l.get("expires")) - datetime.fromisoformat(prev.get("expires")))
-                
-                # Update expiration time if it has changed slightly, while filtering out noise
-                if difference >= timedelta(seconds=20) and difference < timedelta(minutes=60):
-                    lease = {**prev, "expires": l.get("expires")}
+            else:
+                prev_exp = prev.get("expires")
+                new_exp = l.get("expires")
+                if prev_exp and new_exp:
+                    try:
+                        prev_dt = datetime.fromisoformat(prev_exp)
+                        new_dt = datetime.fromisoformat(new_exp)
+                    except ValueError:
+                        prev_dt = new_dt = None
+                else:
+                    prev_dt = new_dt = None
+
+                # Always refresh expiry when it moves forward significantly
+                if prev_dt and new_dt and new_dt > prev_dt + timedelta(seconds=5):
+                    lease = {**l, "end_time": None, "active": True}
                     self.active_leases[key] = lease
                     new_or_updated.append(lease)
-                
-                 # Update lease if expiration time has changed significantly
-                elif difference >= timedelta(minutes=60):
-                    ended.append({**prev, "active": False,"end_time": now})
-                    lease = {**l, "active": True, "end_time": None}
+                # Only update for countdown if drift is meaningful
+                elif prev_dt and new_dt and prev_dt - new_dt >= timedelta(seconds=20):
+                    lease = {**prev, "expires": new_exp, "end_time": None, "active": True}
                     self.active_leases[key] = lease
                     new_or_updated.append(lease)
 
-        for mac, prev in list(self.active_leases.items()):
-            if mac not in current_keys:
-                ended_lease = {
-                    **prev,
-                    "active": False,
-                    "end_time": now
-                }
-                ended.append(ended_lease)
-                del self.active_leases[mac]
+        grace = timedelta(minutes=2)
+        for key, prev in list(self.active_leases.items()):
+            if key in current_keys:
+                continue
+            expires_at = prev.get("expires")
+            if expires_at:
+                try:
+                    expires_dt = datetime.fromisoformat(expires_at)
+                except ValueError:
+                    expires_dt = None
+            else:
+                expires_dt = None
+
+            if expires_dt and now_dt < expires_dt + grace:
+                continue
+
+            ended_lease = {
+                **prev,
+                "end_time": now,
+                "active": False
+            }
+            ended.append(ended_lease)
+            del self.active_leases[key]
 
         return new_or_updated, ended
 
