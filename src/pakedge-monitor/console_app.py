@@ -27,7 +27,7 @@ def run_console(storage: Storage) -> None:
                     print("\nNo active leases\n")
                     continue
                 print("\nActive leases:\n")
-                host_w = max((len(h) if h else 7) for h, *_ in leases)
+                host_w = max((len(r[0]) for r in leases))
                 host_w = max(host_w, len("HOSTNAME"))
                 ip_w = max(len(r[1]) for r in leases)
                 ip_w = max(ip_w, len("IP"))
@@ -45,18 +45,30 @@ def run_console(storage: Storage) -> None:
                 if not devices:
                     print("\nNo devices\n")
                     continue
+
                 print("\nAll devices:\n")
-                host_w = max((len(h) if h else 7) for h, *_ in devices)
+                processed = []
+                for hostname, ip, mac, active_value, _, _ in devices:
+                    display_hostname = hostname
+
+                    if not display_hostname:
+                        try:
+                            # Current data, resolve from DNS
+                            display_hostname = socket.gethostbyaddr(ip)[0]
+                        except Exception:
+                            display_hostname = "Unknown"
+                    processed.append((display_hostname, ip, mac, active_value))
+                
+                host_w = max((len(row[0]) for row in processed))
                 host_w = max(host_w, len("HOSTNAME"))
-                ip_w = max(len(r[1]) for r in devices)
+                ip_w = max(len(row[1]) for row in processed)
                 ip_w = max(ip_w, len("IP"))
-                mac_w = max(len(r[2]) for r in devices)
+                mac_w = max(len(row[2]) for row in processed)
                 mac_w = max(mac_w, len("MAC"))
                 print(f"  {'HOSTNAME':<{host_w}}  {'IP':<{ip_w}}  {'MAC':<{mac_w}}  {'ACTIVE'}")
-                for hostname, ip, mac, active_value, first_seen, last_seen in devices:
-                    hostname = hostname or "Unknown"
+                for display_hostname, ip, mac, active_value in processed:
                     active = "True" if active_value == "1" else "False"
-                    print(f"  {hostname:<{host_w}}  {ip:<{ip_w}}  {mac:<{mac_w}}  {active}")
+                    print(f"  {display_hostname:<{host_w}}  {ip:<{ip_w}}  {mac:<{mac_w}}  {active}")
                 print()
                 continue
 

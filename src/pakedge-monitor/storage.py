@@ -15,8 +15,8 @@ class Storage:
         c.execute("""
         CREATE TABLE IF NOT EXISTS devices (
             mac TEXT PRIMARY KEY,
-            ip TEXT NULL,
-            hostname TEXT,
+            ip TEXT,
+            hostname TEXT NULL,
             first_seen TEXT,
             last_seen TEXT,
             active TEXT
@@ -224,7 +224,6 @@ class Storage:
         c = self.connect.cursor()
         c.execute(
             "DELETE FROM connections WHERE active = 0 AND end_time < ?", (cutoff,))
-        deleted = c.rowcount
 
         self.connect.commit()
 
@@ -265,8 +264,7 @@ class Storage:
                 """
                 SELECT hostname, ip, mac, active, first_seen, last_seen
                 FROM devices
-                WHERE active = 1
-                ORDER BY ip ASC
+                ORDER BY active DESC, ip ASC
                 """
             ).fetchall()
             return rows

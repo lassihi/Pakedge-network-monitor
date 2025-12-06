@@ -57,6 +57,29 @@ class Device:
     def set_inactive(self) -> None:
         self.active = False
 
+    def update_static(self, record: dict) -> None:
+        ts = record.get("ts") or datetime.now().isoformat()
+        ip = record.get("ip")
+
+        if self.first_seen is None:
+            self.first_seen = ts
+
+        if self.last_seen is None:
+            self.last_seen = ts
+        else:
+            try:
+                current_last = datetime.fromisoformat(self.last_seen)
+                static_ts = datetime.fromisoformat(ts)
+                if static_ts > current_last:
+                    self.last_seen = ts
+            except ValueError:
+                pass
+
+        if ip:
+            self.ip = ip
+
+        self.active = False
+
 
 class Tracker:
     def __init__(self) -> None:
@@ -176,6 +199,8 @@ class Tracker:
         for device in self.devices.values():
             device.set_inactive()
 
+        lease_macs = {lease["mac"] for lease in leases}
+
         for lease in leases:
             mac = lease["mac"]
             if mac not in self.devices:
@@ -185,8 +210,17 @@ class Tracker:
 
         for static in statics:
             mac = static["mac"]
+            if mac in lease_macs:
+                continue
+
             if mac not in self.devices:
                 self.devices[mac] = Device(mac)
+
+            static_snapshot = {
+                "ts": static.get("ts") or datetime.now().isoformat(),
+                "ip": static.get("ip"),
+            }
+            self.devices[mac].update_static(static_snapshot)
 
     def get_all_devices(self) -> list:
         return list(self.devices.values())
