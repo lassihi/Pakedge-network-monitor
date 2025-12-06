@@ -27,6 +27,15 @@ class Device:
     def set_active(self, dev: list) -> None:
         timestamp = dev["ts"]
         timestamp_dt = datetime.fromisoformat(timestamp)
+        expires = dev.get("expires")
+        expires_dt = None
+        if expires:
+            try:
+                expires_dt = datetime.fromisoformat(expires)
+            except ValueError:
+                expires_dt = None
+        candidate_last_dt = expires_dt or timestamp_dt
+        candidate_last = expires if expires_dt else timestamp
 
         if self.first_seen is None:
             self.first_seen = timestamp
@@ -36,21 +45,22 @@ class Device:
                 self.first_seen = timestamp
 
         if self.last_seen is None:
-            self.last_seen = timestamp
-            self.ip = dev["ip"]
-            try:
-                self.hostname = dev["hostname"]
-            except KeyError:
-                self.hostname = None
+            self.last_seen = candidate_last
         else:
-            last_seen_dt = datetime.fromisoformat(self.last_seen)
-            if timestamp_dt > last_seen_dt:
+            try:
+                last_seen_dt = datetime.fromisoformat(self.last_seen)
+            except ValueError:
+                last_seen_dt = timestamp_dt
+            if candidate_last_dt and candidate_last_dt > last_seen_dt:
+                self.last_seen = candidate_last
+            elif candidate_last_dt is None and timestamp_dt > last_seen_dt:
                 self.last_seen = timestamp
-                self.ip = dev["ip"]
-                try:
-                    self.hostname = dev["hostname"]
-                except KeyError:
-                    self.hostname = None
+
+        self.ip = dev["ip"]
+        try:
+            self.hostname = dev["hostname"]
+        except KeyError:
+            self.hostname = None
 
         self.active = True
 

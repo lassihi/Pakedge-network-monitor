@@ -92,13 +92,12 @@ def run_console(storage: Storage) -> None:
                             hostname_display = source_device.get("hostname")
 
                     if alert_type == "new_mac_address":
-                        origin = details[0] if details else None
-                        mac_display = details[1] if len(details) > 1 else "Unknown"
+                        origin = details[0]
+                        mac_display = details[1]
 
                         if origin == "lease":
-                            lease_hostname = details[2] if len(details) > 2 else None
-                            if not hostname_display:
-                                hostname_display = lease_hostname or "Unknown"
+                            lease_hostname = details[2]
+                            hostname_display = lease_hostname
                         elif origin == "static_device":
                             if not hostname_display:
                                 hostname_display = "Unknown (static)"
