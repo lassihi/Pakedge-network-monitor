@@ -42,7 +42,7 @@ class Detector:
 
                 self.last_scan_alerts[src] = now
                 alerts.append({
-                    "type": "connect_scan",
+                    "type": "network_scan",
                     "source": src,
                     "details": [{"destination": d, "port": p, "connections": c, "threshold": r} for (d, p, c, r) in hits],
                     "time": now.isoformat()

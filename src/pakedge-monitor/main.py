@@ -26,7 +26,7 @@ def main() -> None:
     alert_interval = config["alert_detection_interval_seconds"]
     db_update_interval = config["database_update_interval_seconds"]
     scan_targets = [tuple(t) for t in config["targets"]]
-    scan_alerts_on = config["alert_on_connect_scans"]
+    scan_alerts_on = config["alert_on_network_scans"]
     new_mac_alerts_on = config["alert_on_new_devices"]
 
     pakedge = RouterScraper(router_url, router_ui_username, router_ui_password)
