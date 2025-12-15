@@ -11,9 +11,27 @@ Monitor and log network activity from a Pakedge router UI. The app scrapes lease
 - Alerts:
 	- Connect scan detection (multiple distinct targets)
 	- New MAC addresses (vs. known static/lease set)
-- A seperate interactive console with readable output:
-	- `alerts`, `devices`, `leases`, `connections <ip>`, `schema`, `SELECT ...`
 - Docker and Compose support
+- A seperate interactive console with readable output for real time information:
+	- `alerts`, `devices`, `leases`, `connections <ip>`, `schema`, `SELECT ...`
+
+### Console examples with real data
+Command: `devices`
+
+<img width="1465" height="438" alt="example-devices" src="https://github.com/user-attachments/assets/2ef19aa3-06a5-4628-89f4-89fa5c891e48" />
+
+Command: `leases`
+
+<img width="1465" height="326" alt="example-leases" src="https://github.com/user-attachments/assets/78ad8466-762f-45eb-920e-1c47673671d2" />
+
+Command: `connections <ip>`
+
+<img width="1465" height="214" alt="example-connections" src="https://github.com/user-attachments/assets/44506744-ee60-4e0e-b50e-9cebaa8096dd" />
+
+Command: `alerts`
+
+<img width="1465" height="131" alt="example-alerts" src="https://github.com/user-attachments/assets/a27e4f2c-9742-4939-9f25-576acc75e5f9" />
+
 
 ## Requirements
 - Python 3.11+
@@ -74,3 +92,4 @@ python src/pakedge-monitor/main.py
 # Console
 python src/pakedge-monitor/console_app.py
 ```
+
