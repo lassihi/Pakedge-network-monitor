@@ -59,12 +59,15 @@ class Storage:
             type TEXT,
             source TEXT,
             details TEXT,
-            time TEXT
+            time TEXT,
+            checked INTEGER DEFAULT 0
         );
         """)
 
         self.connect.commit()
 
+
+# Insert methods
     def upsert_devices(self, mac: str, ip: str, hostname: str, first_seen: str, last_seen: str, active=True) -> None:
         if self.connect is None:
             self.connect = sqlite3.connect(self.db_path)
@@ -171,20 +174,6 @@ class Storage:
 
         self.connect.commit()
 
-    def set_all_inactive(self, table: str) -> None:
-        if self.connect is None:
-            self.connect = sqlite3.connect(self.db_path)
-
-        c = self.connect.cursor()
-
-        allowed = {"devices", "leases", "connections"}
-        if table not in allowed:
-            raise ValueError(f"Invalid table name: {table}")
-
-        c.execute(f"UPDATE {table} SET active = 0 WHERE active = 1")
-
-        self.connect.commit()
-
     def insert_alerts(self, alerts: list) -> None:
         if not alerts:
             return
@@ -208,6 +197,23 @@ class Storage:
         VALUES (:type, :source, :details, :time)
         """, mapped_alerts)
 
+        print("Alert inserted")
+
+        self.connect.commit()
+
+# Utility methods
+    def set_all_inactive(self, table: str) -> None:
+        if self.connect is None:
+            self.connect = sqlite3.connect(self.db_path)
+
+        c = self.connect.cursor()
+
+        allowed = {"devices", "leases", "connections"}
+        if table not in allowed:
+            raise ValueError(f"Invalid table name: {table}")
+
+        c.execute(f"UPDATE {table} SET active = 0 WHERE active = 1")
+
         self.connect.commit()
 
     def close_connection(self) -> None:
@@ -227,6 +233,7 @@ class Storage:
 
         self.connect.commit()
 
+# Console query methods
     def query_select(self, sql: str, params=()) -> list:
         if not sql.strip().lower().startswith("select"):
             raise ValueError("Only SELECT statements are allowed")
@@ -277,7 +284,7 @@ class Storage:
             c = conn.cursor()
             rows = c.execute(
                 """
-                SELECT type, source, details, time
+                SELECT id, type, source, details, time
                 FROM alerts
                 ORDER BY time DESC
                 """
@@ -285,15 +292,58 @@ class Storage:
 
             # Parse details JSON
             parsed = []
-            for typ, source, details_json, when in rows:
+            for id, type, source, details_json, when in rows:
                 try:
                     details = json.loads(details_json) if details_json else []
                 except Exception:
                     details = [details_json] if details_json is not None else []
                 if not isinstance(details, list):
                     details = [details]
-                parsed.append((typ, source, details, when))
+                parsed.append((id, type, source, details, when))
             return parsed
+        finally:
+            conn.close()
+
+    def get_unchecked_alerts(self) -> list:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            c = conn.cursor()
+            rows = c.execute(
+                """
+                SELECT id, type, source, details, time
+                FROM alerts
+                WHERE checked = 0
+                ORDER BY time DESC
+                """
+            ).fetchall()
+
+            # Parse details JSON
+            parsed = []
+            for id, type, source, details_json, when in rows:
+                try:
+                    details = json.loads(details_json) if details_json else []
+                except Exception:
+                    details = [details_json] if details_json is not None else []
+                if not isinstance(details, list):
+                    details = [details]
+                parsed.append((id, type, source, details, when))
+            return parsed
+        finally:
+            conn.close()
+
+    def mark_alert_as_checked(self, alert_id: int) -> None:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            c = conn.cursor()
+            c.execute(
+                """
+                UPDATE alerts
+                SET checked = 1
+                WHERE id = ?
+                """,
+                (alert_id,)
+            )
+            conn.commit()
         finally:
             conn.close()
 
