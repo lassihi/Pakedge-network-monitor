@@ -19,7 +19,7 @@ class Storage:
             hostname TEXT NULL,
             first_seen TEXT,
             last_seen TEXT,
-            active TEXT
+            active INTEGER
         );
         """)
 
@@ -32,7 +32,7 @@ class Storage:
             expires TEXT,
             first_seen TEXT,
             end_time TEXT,
-            active TEXT,
+            active INTEGER,
             UNIQUE(mac, ip)
         );
         """)
